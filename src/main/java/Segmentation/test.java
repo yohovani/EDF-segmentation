@@ -16,7 +16,7 @@ public class test {
 //		//	test.show_image();
 		test.test();
 		test.draw_Image();
-		test.save_image();
+		test.save_image("test.png");
 		test.show_image();	
 		for(int i=0;i<3;i++){
 			test.test();

@@ -23,17 +23,11 @@ import javax.imageio.ImageIO;
  */
 public class EDF {
 	private BufferedImage image;
-	private BufferedImage imageTest;
-	private ArrayList<BufferedImage> imageList;
-	private ArrayList<Coordinates> coordinatesList;
 	private int width;
 	private int height;
 	
 	public EDF(){
 		this.image = ImageManager.toBufferedImage(ImageManager.openImage());
-		this.imageTest = new BufferedImage(this.image.getWidth(),this.image.getHeight(),BufferedImage.TYPE_INT_RGB);
-		this.imageList = new ArrayList();
-		this.coordinatesList = new ArrayList();
 		this.width = this.image.getWidth();
 		this.height = this.image.getHeight();
 	}
@@ -156,9 +150,9 @@ public class EDF {
 		return false;
 	}
 	
-	public void save_image(){
+	public void save_image(String name){
 		try {
-			File outputfile = new File("test1.png");
+			File outputfile = new File(name);
 			ImageIO.write(this.image, "png", outputfile);
 		} catch (IOException ex) {
 			Logger.getLogger(EDF.class.getName()).log(Level.SEVERE, null, ex);
@@ -180,33 +174,10 @@ public class EDF {
 			}
 		}
 		this.image = img;
-		System.out.println("Draw");
 	}
 	
 	public void show_image(){
 		ImageGUI img = new ImageGUI(this.image);
 	}
 	
-	public void doc(){
-		try {
-            String ruta = "Coordenadas.txt";
-            String contenido = "";
-			for(int i=0;i<this.coordinatesList.size();i++){
-				contenido += "X: "+this.coordinatesList.get(i).getX()+" , Y: "+this.coordinatesList.get(i).getY()+"\n";
-			}
-            File file = new File(ruta);
-            // Si el archivo no existe es creado
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-            FileWriter fw = new FileWriter(file);
-            BufferedWriter bw = new BufferedWriter(fw);
-            bw.write(contenido);
-            bw.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-	}
-		
 }
