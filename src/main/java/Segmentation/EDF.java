@@ -8,7 +8,9 @@ package Segmentation;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -24,143 +26,187 @@ public class EDF {
 	private BufferedImage imageTest;
 	private ArrayList<BufferedImage> imageList;
 	private ArrayList<Coordinates> coordinatesList;
+	private int width;
+	private int height;
 	
 	public EDF(){
 		this.image = ImageManager.toBufferedImage(ImageManager.openImage());
 		this.imageTest = new BufferedImage(this.image.getWidth(),this.image.getHeight(),BufferedImage.TYPE_INT_RGB);
 		this.imageList = new ArrayList();
 		this.coordinatesList = new ArrayList();
-
+		this.width = this.image.getWidth();
+		this.height = this.image.getHeight();
 	}
 	
-	public void get_coordinates(){
-		int x = this.image.getWidth();
-		int y = this.image.getHeight();
-		Color pixel;
-		for(int i=0;i<x;i++){
-			for(int j=0;j<y;j++){
+	public void test(){
+		for(int i=0;i<this.width;i++){
+			for(int j=0;j<this.height;j++){
 				//Rule 1
-				if(j+1 < x){
-					pixel = new Color(this.image.getRGB(i, j+1));
-					int aux =  (pixel.getBlue() + pixel.getGreen() + pixel.getRed())/3;
-					if(aux <= 5){
-						if(j+1 < x-5){							
-							j+=1;
-							this.coordinatesList.add(new Coordinates(i, j));
-						}
-					}else{
-						this.imageTest.setRGB(i, j, pixel.getRGB());
-					}
+				if(rule1(i,j+1)){
+					j+=1;
 				}else{
 					//Rule 2
-					if(i+1 < x && j+1 < y){
-						pixel = new Color(this.image.getRGB(i+1, j+1));
-						int aux =  (pixel.getBlue() + pixel.getGreen() + pixel.getRed())/3;
-						if(aux <= 5){
-							if(i + 1 < (x - 5) && j+1 < (y - 5)){
-								i+=1;
-								j+=1;
-								this.coordinatesList.add(new Coordinates(i, j));
-							}
-						}else{
-							this.imageTest.setRGB(i, j, pixel.getRGB());
-						}
+					if(rule2(i+1,j+1)){
+						i+=1;
+						j+=1;
 					}else{
 						//Rule 3
-						if(i+1 < x && j-1 < y){
-							pixel = new Color(this.image.getRGB(i-1, j+1));
-							int aux =  (pixel.getBlue() + pixel.getGreen() + pixel.getRed())/3;
-							if(aux <= 5){
-								if(i + 1 < (x - 5) && j-1 < (y - 5)){
-									i -= 1;
-									j += 1;
-									this.coordinatesList.add(new Coordinates(i, j));
-								}else{
-									this.imageTest.setRGB(i, j, pixel.getRGB());
-								}
-							}
+						if(rule3(i-1,j+1)){
+							i-=1;
+							j+=1;
 						}else{
-							//Rule 4
-							if(j+1 < y){
-								pixel = new Color(this.image.getRGB(i, j+1));
-								int aux =  (pixel.getBlue() + pixel.getGreen() + pixel.getRed())/3;
-								if(aux <= 5){
-									if(j + 1 < (x - 5)){
-										i+=1;
-										this.coordinatesList.add(new Coordinates(i, j));
-									}else{
-										this.imageTest.setRGB(i, j, pixel.getRGB());
-									}
-								}
+							//rule 4
+							if(rule4(i+1,j)){
+								i+=1;
 							}else{
 								//Rule 5
-								if(j-1 < y){
-									pixel = new Color(this.image.getRGB(i-1, j));
-									int aux =  (pixel.getBlue() + pixel.getGreen() + pixel.getRed())/3;
-									if(aux <= 5){
-										if(i+1 < x-5){
-											this.coordinatesList.add(new Coordinates(i-1, j));
-											j-=1;
-										}else{
-											this.imageTest.setRGB(i, j, pixel.getRGB());
-										}
-									}
+								if(rule5(i-1,j)){
+									i-=1;
 								}else{
-									this.coordinatesList.add(new Coordinates(i, j+1));
+									//Rule 6
+									//Validation
+									if(j+1 < this.height){
+										j+=1;
+										this.image.setRGB(i, j, Color.YELLOW.getRGB());
+									}
 								}
 							}
 						}
 					}
 				}
+				
 			}
 		}
 	}
 	
-	public void segmentation(){
-		int x = this.image.getWidth();
-		int y = this.image.getHeight();
-		this.imageList.add(new BufferedImage(x/2,y,BufferedImage.TYPE_INT_RGB));
-		this.imageList.add(new BufferedImage(x/2,y,BufferedImage.TYPE_INT_RGB));
-		
-		for(int i=0;i<x/2;i++){
-			for(int j=0;j<y;j++){
-				this.imageList.get(0).setRGB(i, j, Color.YELLOW.getRGB());
-				this.imageList.get(1).setRGB(i, j, Color.YELLOW.getRGB());
+	public int getColor(int x, int y){
+		Color aux = new Color(this.image.getRGB(x, y));
+		return (aux.getRed()+aux.getGreen()+aux.getBlue())/3;
+	}
+	
+	public boolean rule1(int x, int y){
+		//Validation
+		if(y+1 < this.height){
+			//Rule 1
+			if(getColor(x,y+1) == 0){
+				//Move to down
+				y+=1;
+				this.image.setRGB(x, y, Color.RED.getRGB());
+				return true;
 			}
 		}
-		
-		for(int i=0;i<this.coordinatesList.size();i++){
-//			for(int j=0;j<x/2;j++){
-//				for(int k=0;k<y;k++){
-//					this.imageList.get(0).setRGB(j, k, this.image.getRGB(this.coordinatesList.get(i).getX(), this.coordinatesList.get(i).getY()));
-//				}
-//			}
-			this.image.setRGB(this.coordinatesList.get(i).getX(), this.coordinatesList.get(i).getY(), Color.RED.getRGB());
-			if(this.coordinatesList.get(i).getX() < x/2)
-				this.imageList.get(0).setRGB(this.coordinatesList.get(i).getX(), this.coordinatesList.get(i).getY(), this.image.getRGB(this.coordinatesList.get(i).getX(), this.coordinatesList.get(i).getY()));
-			else
-				this.imageList.get(1).setRGB(this.coordinatesList.get(i).getX()-x/2, this.coordinatesList.get(i).getY(), this.image.getRGB(this.coordinatesList.get(i).getX(), this.coordinatesList.get(i).getY()));
+		return false;
+	}
+	
+	public boolean rule2(int x, int y){
+		//Validation
+		if(x+1 <  this.width && y+1 < this.height){
+			//Rule 2
+			if(getColor(x+1,y+1) == 0){
+				//Move to down and right
+				x+=1;
+				y+=1;
+				this.image.setRGB(x, y, Color.CYAN.getRGB());
+				return true;
+			}	
 		}
-//		for(int i=0;i<this.coordinatesList.size();i++){
-//			for(int j=0;j<x/2;j++){
-//				for(int k=0;k<y;k++){
-//					this.imageList.get(0).setRGB(j, k, this.image.getRGB(this.coordinatesList.get(i).getX(), this.coordinatesList.get(i).getY()));
-//				}
-//			}
-//		}
+		return false;
+	}
+	
+	public boolean rule3(int x, int y){
+		//Validation
+		if(x-1 >= 0 && y+1 < this.height){
+			//Rule 3
+			if(getColor(x-1,y+1) == 0){
+				//Move to down and left
+				x-=1;
+				y+=1;
+				this.image.setRGB(x, y, Color.GREEN.getRGB());
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean rule4(int x, int y){
+		//Validation
+		if(x+1 < this.width){
+			//Rule 4
+			if(getColor(x+1,y) == 0){
+				//Move to right
+				x+=1;
+				this.image.setRGB(x, y, Color.PINK.getRGB());
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean rule5(int x, int y){
+		//Validation
+		if(x-1 >= 0){
+			//Rule 5
+			if(getColor(x-1,y) == 0){
+				//Move to Left
+				x-=1;
+				this.image.setRGB(x, y, Color.ORANGE.getRGB());
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public void save_image(){
+		try {
+			File outputfile = new File("test1.png");
+			ImageIO.write(this.image, "png", outputfile);
+		} catch (IOException ex) {
+			Logger.getLogger(EDF.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+	
+	public void draw_Image(){
+		BufferedImage img = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_RGB);
+		for(int i=0;i<this.width;i++){
+			for(int j=0;j<this.height;j++){
+				img.setRGB(i, j, Color.BLACK.getRGB());
+			}
+		}
+		for(int i=0;i<this.width;i++){
+			for(int j=0;j<this.height;j++){
+				if(this.image.getRGB(i, j) != Color.RED.getRGB() && this.image.getRGB(i, j) != Color.CYAN.getRGB() && this.image.getRGB(i, j) != Color.GREEN.getRGB() && this.image.getRGB(i, j) != Color.PINK.getRGB() && this.image.getRGB(i, j) != Color.ORANGE.getRGB() && this.image.getRGB(i, j) != Color.BLACK.getRGB() && this.image.getRGB(i, j) != Color.YELLOW.getRGB()){
+					img.setRGB(i, j, this.image.getRGB(i, j));
+				}
+			}
+		}
+		this.image = img;
+		System.out.println("Draw");
 	}
 	
 	public void show_image(){
-		ImageGUI img = new ImageGUI(this.imageList.get(0));
-		ImageGUI img2 = new ImageGUI(this.imageList.get(1));
-		ImageGUI img3 = new ImageGUI(this.image);
-		ImageGUI img4 = new ImageGUI(this.imageTest);
+		ImageGUI img = new ImageGUI(this.image);
 	}
 	
-	public void run(){
-		get_coordinates();
-		segmentation();
-		show_image();
+	public void doc(){
+		try {
+            String ruta = "Coordenadas.txt";
+            String contenido = "";
+			for(int i=0;i<this.coordinatesList.size();i++){
+				contenido += "X: "+this.coordinatesList.get(i).getX()+" , Y: "+this.coordinatesList.get(i).getY()+"\n";
+			}
+            File file = new File(ruta);
+            // Si el archivo no existe es creado
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            FileWriter fw = new FileWriter(file);
+            BufferedWriter bw = new BufferedWriter(fw);
+            bw.write(contenido);
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
 	}
-	
+		
 }
