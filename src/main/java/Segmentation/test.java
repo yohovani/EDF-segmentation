@@ -13,16 +13,15 @@ public class test {
 
 	public static void main(String[] argv) {
 		EDF test = new EDF();
-//		//	test.show_image();
-		test.test();
+//		//	segmentation.show_image();
+		test.show_image();		
+		test.segmentation();
 		test.draw_Image();
 		test.save_image("test.png");
+		test.show_image();
+		test.draw_Image();
+		test.average();
 		test.show_image();	
-		for(int i=0;i<3;i++){
-			test.test();
-//			test.draw_Image();
-			test.show_image();	
-		}		
-//		test.run();
+		test.save_image("test4.png");
 	}
 }

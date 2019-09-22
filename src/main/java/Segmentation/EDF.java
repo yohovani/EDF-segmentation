@@ -32,7 +32,7 @@ public class EDF {
 		this.height = this.image.getHeight();
 	}
 	
-	public void test(){
+	public void segmentation(){
 		for(int i=0;i<this.width;i++){
 			for(int j=0;j<this.height;j++){
 				//Rule 1
@@ -178,6 +178,39 @@ public class EDF {
 	
 	public void show_image(){
 		ImageGUI img = new ImageGUI(this.image);
+	}
+	
+	public void average(){
+		Color[][] pix = new Color[2][2];
+		for(int i=0;i<this.width-pix.length;i++){
+			for(int j=0;j<this.height-pix.length;j++){
+				pix[0][0] = new Color(this.image.getRGB(i, j));
+				pix[0][1] = new Color(this.image.getRGB(i, j+1));
+//				pix[0][2] = new Color(this.image.getRGB(i, j+2));
+				pix[1][0] = new Color(this.image.getRGB(i+1, j));
+				pix[1][1] = new Color(this.image.getRGB(i+1, j+1));
+//				pix[1][2] = new Color(this.image.getRGB(i+1, j+2));
+//				pix[2][0] = new Color(this.image.getRGB(i+2, j));
+//				pix[2][1] = new Color(this.image.getRGB(i+2, j+1));
+//				pix[2][2] = new Color(this.image.getRGB(i+2, j+2));
+				int red = 0;
+				int green = 0;
+				int blue = 0;
+				for(int k=0;k<2;k++){
+					for(int l=0;l<2;l++){
+						red += pix[k][l].getRed();
+						green += pix[k][l].getGreen();
+						blue += pix[k][l].getBlue();
+					}
+				}
+				red /= 4;
+				green /= 4;
+				blue /= 4;
+				
+				Color average = new Color(red,green,blue);
+				this.image.setRGB(i, j, average.getRGB());
+			}
+		}
 	}
 	
 }
